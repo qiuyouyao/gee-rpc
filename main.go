@@ -3,18 +3,17 @@ package main
 import (
 	"fmt"
 	"gee"
-	"net/http"
 )
 
 func main() {
 	r := gee.New()
 
-	r.GET("/", func(writer http.ResponseWriter, request *http.Request) {
-		_, _ = fmt.Fprintf(writer, "Request path = %q\n", request.URL.Path)
+	r.GET("/", func(ctx *gee.Context) {
+		_, _ = fmt.Fprintf(ctx.Writer, "Request path = %q\n", ctx.Request.URL.Path)
 	})
 
-	r.GET("/ping", func(writer http.ResponseWriter, request *http.Request) {
-		_, _ = fmt.Fprint(writer, "ping")
+	r.GET("/ping", func(ctx *gee.Context) {
+		_, _ = fmt.Fprint(ctx.Writer, "pong")
 	})
 
 	err := r.Run(":8888")
