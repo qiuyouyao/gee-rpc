@@ -33,13 +33,16 @@ func (router *router) handle(context *Context) {
 	if n != nil {
 		context.Params = params
 		routeKey := buildRouteKey(context.Method, n.pattern)
-		router.handlers[routeKey](context)
+		context.handlers = append(context.handlers, router.handlers[routeKey])
 	} else {
-		_, err := context.String(http.StatusNotFound, "404 NOT FOUND: %s\n", context.Path)
-		if err != nil {
-			return
-		}
+		context.handlers = append(context.handlers, func(c *Context) {
+			_, err := c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", context.Path)
+			if err != nil {
+				return
+			}
+		})
 	}
+	context.Next()
 }
 
 func (router *router) getRoute(method string, path string) (*node, map[string]string) {

@@ -9,20 +9,31 @@ import (
 type H map[string]interface{}
 
 type Context struct {
-	Writer     http.ResponseWriter
-	Request    *http.Request
-	Method     string
-	Path       string
-	Params     map[string]string
-	StatusCode int
+	Writer        http.ResponseWriter
+	Request       *http.Request
+	Method        string
+	Path          string
+	Params        map[string]string
+	StatusCode    int
+	handlers      []HandlerFunc
+	handlersIndex int
 }
 
 func newContext(writer http.ResponseWriter, request *http.Request) *Context {
 	return &Context{
-		Writer:  writer,
-		Request: request,
-		Method:  request.Method,
-		Path:    request.URL.Path,
+		Writer:        writer,
+		Request:       request,
+		Method:        request.Method,
+		Path:          request.URL.Path,
+		handlersIndex: -1,
+	}
+}
+
+func (context *Context) Next() {
+	context.handlersIndex++
+	handlersLength := len(context.handlers)
+	for ; context.handlersIndex < handlersLength; context.handlersIndex++ {
+		context.handlers[context.handlersIndex](context)
 	}
 }
 

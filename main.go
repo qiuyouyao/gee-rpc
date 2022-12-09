@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"gee"
+	"log"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -22,6 +24,7 @@ func main() {
 	})
 
 	adminGroup := r.Group("/admin")
+	adminGroup.Use(cost())
 	adminGroup.GET("/a", func(context *gee.Context) {
 		_, _ = fmt.Fprintf(context.Writer, "Request path = %q\n", context.Request.URL.Path)
 	})
@@ -33,8 +36,24 @@ func main() {
 		})
 	})
 
+	adminGroup.GET("/b/:id", func(context *gee.Context) {
+		time.Sleep(time.Second * 1)
+		context.JSON(http.StatusOK, gee.H{
+			"message": "success",
+			"id":      context.Params["id"],
+		})
+	})
+
 	err := r.Run(":8888")
 	if err != nil {
 		return
+	}
+}
+
+func cost() gee.HandlerFunc {
+	return func(context *gee.Context) {
+		start := time.Now()
+		context.Next()
+		log.Printf("request uri:%s cost:%v\n", context.Request.RequestURI, time.Since(start))
 	}
 }
