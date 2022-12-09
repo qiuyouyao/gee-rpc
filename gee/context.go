@@ -13,6 +13,7 @@ type Context struct {
 	Request    *http.Request
 	Method     string
 	Path       string
+	Params     map[string]string
 	StatusCode int
 }
 

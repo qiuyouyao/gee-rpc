@@ -42,7 +42,8 @@ func (n *node) insert(pattern string, parts []string, height int) {
 	child := n.matchChild(part)
 	if child == nil {
 		child = &node{
-			part:   part,
+			part: part,
+			// part是否以:或*开头, exp: /getUserInfo/:id, static/* -> static/hello static/go
 			isWild: part[0] == ':' || part[0] == '*',
 		}
 		n.children = append(n.children, child)

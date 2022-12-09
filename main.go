@@ -8,12 +8,16 @@ import (
 func main() {
 	r := gee.New()
 
-	r.GET("/", func(ctx *gee.Context) {
+	r.GET("/api/user/ping", func(ctx *gee.Context) {
 		_, _ = fmt.Fprintf(ctx.Writer, "Request path = %q\n", ctx.Request.URL.Path)
 	})
 
-	r.GET("/ping", func(ctx *gee.Context) {
-		_, _ = fmt.Fprint(ctx.Writer, "pong")
+	r.GET("/ping/:id/:type", func(ctx *gee.Context) {
+		_, _ = fmt.Fprint(ctx.Writer, gee.H{
+			"message": "pong",
+			"id":      ctx.Params["id"],
+			"type":    ctx.Params["type"],
+		})
 	})
 
 	err := r.Run(":8888")

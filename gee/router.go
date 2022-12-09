@@ -1,7 +1,6 @@
 package gee
 
 import (
-	"log"
 	"net/http"
 	"strings"
 )
@@ -20,7 +19,6 @@ func newRouter() *router {
 
 func (router *router) addRoute(method string, pattern string, handler HandlerFunc) {
 	parts := parsePattern(pattern)
-	log.Printf("Route %4s - %s ", method, pattern)
 	routeKey := buildRouteKey(method, pattern)
 	_, ok := router.roots[method]
 	if !ok {
@@ -31,15 +29,40 @@ func (router *router) addRoute(method string, pattern string, handler HandlerFun
 }
 
 func (router *router) handle(context *Context) {
-	routeKey := buildRouteKey(context.Method, context.Path)
-	if handler, ok := router.handlers[routeKey]; ok {
-		handler(context)
+	n, params := router.getRoute(context.Method, context.Path)
+	if n != nil {
+		context.Params = params
+		routeKey := buildRouteKey(context.Method, n.pattern)
+		router.handlers[routeKey](context)
 	} else {
 		_, err := context.String(http.StatusNotFound, "404 NOT FOUND: %s\n", context.Path)
 		if err != nil {
 			return
 		}
 	}
+}
+
+func (router *router) getRoute(method string, path string) (*node, map[string]string) {
+	searchParts := parsePattern(path)
+	params := make(map[string]string)
+	root, ok := router.roots[method]
+	if !ok {
+		return nil, nil
+	}
+	n := root.search(searchParts, 0)
+	if n != nil {
+		parts := parsePattern(n.pattern)
+		for index, part := range parts {
+			if part[0] == ':' {
+				params[part[1:]] = searchParts[index]
+			} else if part[0] == '*' && len(part) > 1 {
+				params[part[1:]] = strings.Join(searchParts[:index], "/")
+				break
+			}
+		}
+		return n, params
+	}
+	return nil, nil
 }
 
 func parsePattern(pattern string) []string {
