@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"gee"
+	"net/http"
 )
 
 func main() {
@@ -17,6 +18,18 @@ func main() {
 			"message": "pong",
 			"id":      ctx.Params["id"],
 			"type":    ctx.Params["type"],
+		})
+	})
+
+	adminGroup := r.Group("/admin")
+	adminGroup.GET("/a", func(context *gee.Context) {
+		_, _ = fmt.Fprintf(context.Writer, "Request path = %q\n", context.Request.URL.Path)
+	})
+
+	adminGroup.GET("/b/:id", func(context *gee.Context) {
+		context.JSON(http.StatusOK, gee.H{
+			"message": "success",
+			"id":      context.Params["id"],
 		})
 	})
 
